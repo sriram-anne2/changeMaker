@@ -16,8 +16,28 @@ public class ActionController {
     final int nickelValue = 5;
     final int dimeValue = 10;
     final int quarterValue = 25;
+    final int fiftyCentValue = 50;
 
     final ArrayList<Integer> availableBills = new ArrayList<>();
+    ArrayList<Integer> coinVals = new ArrayList<>();
+
+    public ActionController() {
+        this.availableBills.add(1);
+        this.availableBills.add(2);
+        this.availableBills.add(5);
+        this.availableBills.add(10);
+        this.availableBills.add(20);
+        this.availableBills.add(50);
+        this.availableBills.add(100);
+
+        this.coinVals.add(50);
+        this.coinVals.add(25);
+        this.coinVals.add(10);
+        this.coinVals.add(5);
+        this.coinVals.add(1);
+
+    }
+
 
 
     @Autowired
@@ -46,21 +66,15 @@ public class ActionController {
         currentCoin.setNickels(newCoins.getNickels());
         currentCoin.setDimes(newCoins.getDimes());
         currentCoin.setQuarters(newCoins.getQuarters());
+        currentCoin.setFiftyCent(newCoins.getFiftyCent());
 
         return currentCoin;
     }
 
+
     @PostMapping("/makeChange")
     @ResponseBody
     public Coin makeChange(@RequestParam(required = false) boolean mostChange, @RequestBody String dollarBill) throws ChangeMakerException {
-
-        availableBills.add(1);
-        availableBills.add(2);
-        availableBills.add(5);
-        availableBills.add(10);
-        availableBills.add(20);
-        availableBills.add(50);
-        availableBills.add(100);
 
         int bill = Integer.parseInt(dollarBill);
         int billVal = bill * 100;
@@ -86,37 +100,69 @@ public class ActionController {
 
         Coin changeCoin = new Coin();
 
-        int numQuarters = 0, numDimes = 0 , numNickels = 0, numPennies = 0;
-        if (amount > 25) {
-            numQuarters = Math.min(amount/25, currentCoin.getQuarters());
-            amount = amount - (numQuarters * quarterValue);
+        int numFiftCent = 0, numQuarters = 0, numDimes = 0 , numNickels = 0, numPennies = 0;
 
+
+//        coinVals.add(50);
+//        coinVals.add(25);
+//        coinVals.add(10);
+//        coinVals.add(5);
+//        coinVals.add(1);
+
+        ArrayList<Integer> maxCoins = new ArrayList<>();
+        maxCoins.add(currentCoin.getFiftyCent());
+        maxCoins.add(currentCoin.getQuarters());
+        maxCoins.add(currentCoin.getDimes());
+        maxCoins.add(currentCoin.getNickels());
+        maxCoins.add(currentCoin.getPennies());
+
+        ArrayList<Integer> numCoins = new ArrayList<>();
+
+        for (int i = 0; i < coinVals.size(); i ++) {
+            int numCoin = 0;
+            if (amount > coinVals.get(i)) {
+                numCoin = Math.min(amount/coinVals.get(i), maxCoins.get(i));
+                amount = amount - (numCoin * coinVals.get(i));
+            }
+            numCoins.add(numCoin);
         }
-        if (amount > 10) {
-            numDimes = Math.min(amount/10, currentCoin.getDimes());
-            amount = amount - (numDimes * dimeValue);
 
-        }
-        if (amount > 5) {
-            numNickels = Math.min(amount/5, currentCoin.getNickels());
-            amount = amount - (numNickels * nickelValue);
+////        if (amount > 50) {
+////            numFiftCent = Math.min(amount/50, currentCoin.getFiftyCent());
+////            amount = amount - (numFiftCent * fiftyCentValue);
+////        }
+////        if (amount > 25) {
+////            numQuarters = Math.min(amount/25, currentCoin.getQuarters());
+////            amount = amount - (numQuarters * quarterValue);
+////
+////        }
+////        if (amount > 10) {
+////            numDimes = Math.min(amount/10, currentCoin.getDimes());
+////            amount = amount - (numDimes * dimeValue);
+////
+////        }
+////        if (amount > 5) {
+////            numNickels = Math.min(amount/5, currentCoin.getNickels());
+////            amount = amount - (numNickels * nickelValue);
+////
+////        }
+////        if (amount > 1) {
+////            numPennies = Math.min(amount, currentCoin.getPennies());
+////            amount = amount - (numPennies * pennyValue);
+////
+////        }
+//
+        changeCoin.setFiftyCent(numCoins.get(0));
+        changeCoin.setQuarters(numCoins.get(1));
+        changeCoin.setDimes(numCoins.get(2));
+        changeCoin.setNickels(numCoins.get(3));
+        changeCoin.setPennies(numCoins.get(4));
 
-        }
-        if (amount > 1) {
-            numPennies = Math.min(amount, currentCoin.getPennies());
-            amount = amount - (numPennies * pennyValue);
-
-        }
-
-        changeCoin.setQuarters(numQuarters);
-        changeCoin.setDimes(numDimes);
-        changeCoin.setNickels(numNickels);
-        changeCoin.setPennies(numPennies);
-
-        currentCoin.setQuarters(currentCoin.getQuarters() - numQuarters);
-        currentCoin.setDimes(currentCoin.getDimes() - numDimes);
-        currentCoin.setNickels(currentCoin.getNickels() - numNickels);
-        currentCoin.setPennies(currentCoin.getPennies() - numPennies);
+        currentCoin.setFiftyCent(currentCoin.getFiftyCent() - numCoins.get(0));
+        currentCoin.setQuarters(currentCoin.getQuarters() - numCoins.get(1));
+        currentCoin.setDimes(currentCoin.getDimes() - numCoins.get(2));
+        currentCoin.setNickels(currentCoin.getNickels() - numCoins.get(3));
+        currentCoin.setPennies(currentCoin.getPennies() - numCoins.get(4));
 
 
         return changeCoin;
@@ -125,10 +171,11 @@ public class ActionController {
 
     public int maxValueOfAvailableCoins(Coin coin) {
 
-        return (coin.getQuarters() * quarterValue)
-                + (coin.getDimes() * dimeValue)
-                + (coin.getNickels() * nickelValue)
-                + (coin.getPennies() * pennyValue);
+        return (coin.getFiftyCent() * coinVals.get(0)) +
+                (coin.getQuarters() * coinVals.get(1))
+                + (coin.getDimes() * coinVals.get(2))
+                + (coin.getNickels() * coinVals.get(3))
+                + (coin.getPennies() * coinVals.get(4));
     }
 
 

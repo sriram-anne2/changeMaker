@@ -13,6 +13,7 @@ public class Coin {
     private int nickels;
     private int dimes;
     private int quarters;
+    private int fiftyCent;
 
 
     public Coin() {
@@ -20,5 +21,6 @@ public class Coin {
         this.nickels = 100;
         this.dimes = 100;
         this.quarters = 100;
+        this.fiftyCent = 100;
     }
 }
